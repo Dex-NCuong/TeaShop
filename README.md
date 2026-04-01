@@ -1,36 +1,46 @@
+# 🍃 WebTra AI Assistant - Hệ Thống Quản Lý Trà Thông Minh
 
-## 🚀 Hướng dẫn cài đặt và chạy bài
+Chào mừng bạn đến với **WebTra**, một nền tảng thương mại điện tử chuyên biệt về trà, kết hợp với trợ lý ảo **AI Chatbot** thông minh giúp gắn kết khách hàng và tối ưu hóa trải nghiệm mua sắm.
 
-### 1. Chuẩn bị môi trường
-- Cài đặt **JDK 17** trở lên.
-- Cài đặt **Node.js** (khuyên dùng bản LTS).
-- Cài đặt **XAMPP** (để chạy MySQL).
+## 🚀 Công nghệ sử dụng (Tech Stack)
 
-### 2. Cài đặt Cơ sở dữ liệu
-1. Mở **XAMPP Control Panel** ,cấu hình lại port 8080: 
-- Mở XAMPP Control Panel.
-- Ở dòng Apache, nhấn nút Config -> Chọn Apache (httpd.conf).
-- Nhấn Ctrl + F tìm chữ 8080.
-- Đổi tất cả chỗ nào là 8080 thành 8082 (Ví dụ: Listen 8082 và ServerName localhost:8082).
-- Save file lại rồi nhấn Stop Apache, sau đó Start lại.
+Hệ thống được xây dựng theo mô hình **MERN Stack** (MongoDB, Express, React, Node.js) và tuân thủ kiến trúc **RESTful API**.
 
-2. khởi động **MySQL**.
-   ```
-4. **Cấu hình VNPAY**: (Nếu bạn dùng tài khoản Sandbox riêng, hãy cập nhật tại `com.example.WebTra_Springboot.config.VnPayConfig`).
+- **Backend**: Node.js, Express framework.
+- **Database**: MongoDB Atlas (Cloud Database).
+- **ORM/ODM**: Mongoose.
+- **Frontend**: React.js (Vite), Tailwind CSS, Lucide Icons, Framer Motion.
+- **AI Integration**: Custom Rule-based & Keyword Matching NLP (Xử lý ngôn ngữ tự nhiên).
 
-### 3. Chạy dự án
+## ✨ Tính năng nổi bật của Chatbot AI
 
-**Lưu ý**: Chỉ cần thực hiện 2 bước dưới đây là bài đã hoạt động bình thường và có thể demo đầy đủ các chức năng.
+Chatbot của WebTra không chỉ trả lời tin nhắn mà còn là một nhân viên bán hàng thực thụ:
+- 🔍 **Tìm kiếm thông minh**: Tìm trà theo tên, vùng miền hoặc đặc điểm (vd: "Trà xanh Thái Nguyên").
+- 💰 **Lọc giá linh hoạt**: Tìm sản phẩm phù hợp ngân sách (vd: "Tìm trà dưới 500k", "trà giá rẻ").
+- ⚖️ **Chọn khối lượng ngay trong Chat**: Cho phép người dùng chọn gói 100g, 200g, 500g trực tiếp.
+- 🛒 **Thêm vào giỏ hàng & Thanh toán**: Tích hợp nút mua nhanh và nút chuyển hướng thanh toán siêu tốc.
+- 📦 **Tra cứu đơn hàng**: Kiểm tra trạng thái vận đơn thực tế từ hệ thống chỉ với mã đơn (vd: #123).
 
-#### Bước 1: Chạy Backend
-Mở terminal tại thư mục gốc:
-```bash
-./mvnw spring-boot:run
+## 🛠 Hướng dẫn cài đặt & Chạy dự án
+
+### 1. Cấu hình Biến môi trường (.env)
+Tạo file `.env` trong thư mục `backend_nodejs` với các nội dung sau:
+```env
+PORT=5000
+MONGODB_URI=mongodb+srv://nhatcuong1208:cuong20gg@teashop.fiyd3pr.mongodb.net/
+JWT_SECRET=your_secret_key
+CORS_ORIGIN=http://localhost:5173
 ```
-*Backend sẽ chạy tại: [http://localhost:8080](http://localhost:8080)*
 
-#### Bước 2: Chạy Frontend
-1. Mở terminal mới, di chuyển vào thư mục `frontend`:
+### 2. Chạy Backend (Node.js)
+```bash
+cd backend_nodejs
+npm install
+npm run dev
+```
+*Backend sẽ chạy tại: [http://localhost:5000](http://localhost:5000)*
+
+### 3. Chạy Frontend (React)
 ```bash
 cd frontend
 npm install
@@ -40,26 +50,23 @@ npm run dev
 
 ---
 
-## 🛠 Bước 3
-### Thiết lập ngrok (Để nhận thông báo IPN từ VNPAY)
-Mặc dù dùng `localhost` bài vẫn chạy thanh toán bình thường,
-1. Mở terminal mới chạy lệnh: `./ngrok http 8080`
+## 📂 Cấu trúc thư mục Backend (RESTful MVC)
+```text
+backend_nodejs/
+├── src/
+│   ├── config/       # Cấu hình Database (Mongoose)
+│   ├── controllers/  # Xử lý logic nghiệp vụ
+│   ├── models/       # Định nghĩa Schema MongoDB
+│   ├── routes/       # Khai báo các API Endpoints
+│   ├── services/     # Logic AI Chatbot & Xử lý NLP
+│   └── app.js        # Cấu hình Express
+└── server.js         # Điểm đầu vào (Entry point)
+```
 
-
-## 📝 Tài khoản thử nghiệm ( Tự đăng kí)
-- **Admin**: `admin@example.com` / `admin123` (Tự đăng kí)
-- **User**: `user@example.com` / `user123` (Tự đăng kí)
-
----
-
-## ⚡ Một số lưu ý khi chạy
-- Nếu gặp lỗi **Port 8080 already in use**, hãy kiểm tra xem có ứng dụng nào (như XAMPP Apache) đang chiếm cổng này không và đổi cổng hoặc tắt ứng dụng đó.
-- Khi thanh toán VNPAY trong môi trường Sandbox, hãy sử dụng **Thẻ ATM nội địa (NCB)** với thông tin:
-  - Số thẻ: `9704198526191432198`
-  - Tên chủ thẻ: `NGUYEN VAN A`
-  - Ngày phát hành: `07/15`
-  - Mã OTP: `123456`
+## 📝 Ghi chú quan trọng
+- Hệ thống đã được cấu hình **CORS** để Frontend và Backend có thể giao tiếp mượt mà.
+- **Bảo mật**: File `.env` và thư mục `node_modules` đã được chặn trong `.gitignore`.
+- **Database**: Dữ liệu hiện đang kết nối trực tiếp tới MongoDB Atlas của dự án.
 
 ---
-
-*Chúc bạn có những giây phút trải nghiệm tuyệt vời cùng Trà Thơm!*
+*Chúc bạn có những trải nghiệm tuyệt vời cùng Trà Thơm WebTra!* 🍵✨
