@@ -27,7 +27,7 @@ Chatbot của WebTra không chỉ trả lời tin nhắn mà còn là một nhâ
 Tạo file `.env` trong thư mục `backend_nodejs` với các nội dung sau:
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://nhatcuong1208:cuong20gg@teashop.fiyd3pr.mongodb.net/
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>
 JWT_SECRET=your_secret_key
 CORS_ORIGIN=http://localhost:5173
 ```
