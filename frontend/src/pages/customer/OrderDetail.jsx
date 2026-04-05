@@ -76,9 +76,9 @@ const OrderDetail = () => {
           {/* Header */}
           <div className="p-10 border-b border-slate-50 dark:border-slate-800 flex flex-wrap items-center justify-between gap-6 bg-slate-50/50 dark:bg-slate-800/20">
             <div className="space-y-2">
-              <h1 className="text-3xl font-black tracking-tight text-[#2d5a27]">Đơn hàng #{order.id}</h1>
-              <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <span className="flex items-center gap-1"><Calendar className="size-3" /> {new Date(order.orderDate).toLocaleString('vi-VN')}</span>
+              <h1 className="text-3xl font-black tracking-tight text-[#2d5a27]">Đơn hàng #{order._id?.slice(-6)}</h1>
+              <div className="flex items-center gap-3 text-sm font-bold mt-2">
+                <span className="text-slate-400">{new Date(order.createdAt).toLocaleString('vi-VN')}</span>
                 <span className="size-1 rounded-full bg-slate-300"></span>
                 <span>{order.details?.length || 0} sản phẩm</span>
               </div>
@@ -102,28 +102,28 @@ const OrderDetail = () => {
                      <User className="size-4 text-slate-400 mt-1" />
                      <div className="space-y-1">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Người nhận</p>
-                        <p className="font-bold text-sm">{order.shippingName || (order.user?.fullName)}</p>
+                        <p className="font-bold text-sm">{order.shippingName || order.userId?.fullName}</p>
                      </div>
                   </div>
                   <div className="flex items-start gap-4">
                      <Phone className="size-4 text-slate-400 mt-1" />
                      <div className="space-y-1">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Điện thoại</p>
-                        <p className="font-bold text-sm">{order.shippingPhone || order.user?.phone}</p>
+                        <p className="font-bold text-sm">{order.shippingPhone || order.userId?.phone}</p>
                      </div>
                   </div>
                   <div className="flex items-start gap-4">
                      <Mail className="size-4 text-slate-400 mt-1" />
                      <div className="space-y-1">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Email</p>
-                        <p className="font-bold text-sm">{order.shippingEmail || order.user?.email}</p>
+                        <p className="font-bold text-sm">{order.shippingEmail || order.userId?.email}</p>
                      </div>
                   </div>
                   <div className="flex items-start gap-4">
                      <MapPin className="size-4 text-slate-400 mt-1" />
                      <div className="space-y-1">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Địa chỉ</p>
-                        <p className="font-bold text-sm leading-relaxed">{order.shippingAddress || order.user?.address}</p>
+                        <p className="font-bold text-sm leading-relaxed">{order.shippingAddress || order.userId?.address}</p>
                      </div>
                   </div>
                 </div>

@@ -30,8 +30,9 @@ const Products = () => {
       customerApi.getProducts(),
       customerApi.getCategories()
     ]).then(([prodRes, catRes]) => {
-      setProducts(prodRes.data);
-      setCategories(catRes.data);
+      // Backend trả về { data: [...], pagination: {...} }
+      setProducts(prodRes.data.data || prodRes.data || []);
+      setCategories(catRes.data || []);
       setLoading(false);
     }).catch(err => {
       console.error(err);
@@ -42,26 +43,22 @@ const Products = () => {
   // Filter and Sort
   const filteredProducts = products
     .filter(p => {
-      // Search by name
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Filter by categories (AND logic if multiple selected)
+      // categoryId có thể được populate (object) hoặc là string ObjectId
+      const productCategoryId = p.categoryId?._id || p.categoryId;
       const matchesCategory = appliedFilters.categories.length === 0 || 
-                             appliedFilters.categories.includes(p.category?.id);
-      
-      // Filter by price range
-      const price = p.weights?.[0]?.price || 0;
+                             appliedFilters.categories.includes(productCategoryId?.toString());
+      const price = p.weights?.[0]?.price || p.price || 0;
       const matchesMinPrice = appliedFilters.priceRange.min === null || price >= appliedFilters.priceRange.min;
       const matchesMaxPrice = appliedFilters.priceRange.max === null || price <= appliedFilters.priceRange.max;
-      
       return matchesSearch && matchesCategory && matchesMinPrice && matchesMaxPrice;
     })
     .sort((a, b) => {
-      const priceA = a.weights?.[0]?.price || 0;
-      const priceB = b.weights?.[0]?.price || 0;
+      const priceA = a.weights?.[0]?.price || a.price || 0;
+      const priceB = b.weights?.[0]?.price || b.price || 0;
       if (sortBy === 'Giá thấp → cao') return priceA - priceB;
       if (sortBy === 'Giá cao → thấp') return priceB - priceA;
-      if (sortBy === 'Mới nhất') return b.id - a.id;
+      if (sortBy === 'Mới nhất') return new Date(b.createdAt) - new Date(a.createdAt);
       return 0;
     });
 
@@ -179,19 +176,19 @@ const Products = () => {
               </h3>
               <div className="space-y-4 pl-1">
                 {categories.map((cat) => (
-                  <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
+                  <label key={cat._id} className="flex items-center gap-3 cursor-pointer group">
                     <div className="relative flex items-center">
                       <input 
                         type="checkbox" 
-                        checked={tempSelectedCategories.includes(cat.id)}
-                        onChange={() => handleCategoryToggle(cat.id)}
+                        checked={tempSelectedCategories.includes(cat._id)}
+                        onChange={() => handleCategoryToggle(cat._id)}
                         className="peer hidden" 
                       />
                       <div className="size-5 border-2 border-slate-200 dark:border-slate-700 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
                         <span className="material-symbols-outlined text-white text-xs font-black scale-0 peer-checked:scale-100 transition-transform">check</span>
                       </div>
                     </div>
-                    <span className={`text-base transition-colors ${tempSelectedCategories.includes(cat.id) ? 'text-primary font-black' : 'group-hover:text-primary text-slate-600 dark:text-slate-400 font-bold'}`}>
+                    <span className={`text-base transition-colors ${tempSelectedCategories.includes(cat._id) ? 'text-primary font-black' : 'group-hover:text-primary text-slate-600 dark:text-slate-400 font-bold'}`}>
                       {cat.name}
                     </span>
                   </label>
@@ -232,7 +229,7 @@ const Products = () => {
                     const isOutOfStock = p.weights?.every(w => w.stock === 0);
 
                     return (
-                      <Link key={p.id} to={`/product/${p.id}`} className={`group flex flex-col space-y-6 ${isOutOfStock ? 'opacity-75' : ''}`}>
+                      <Link key={p._id} to={`/product/${p._id}`} className={`group flex flex-col space-y-6 ${isOutOfStock ? 'opacity-75' : ''}`}>
                         <div className="aspect-[4/5] w-full overflow-hidden bg-slate-100 dark:bg-slate-900 relative rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 hover:shadow-2xl">
                           <img 
                             alt={p.name} 
@@ -246,7 +243,7 @@ const Products = () => {
                           )}
                         </div>
                         <div className="space-y-3 px-1">
-                          <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">{p.category?.name}</div>
+                          <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">{p.categoryId?.name}</div>
                           <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1 leading-tight">{p.name}</h3>
                           <div className="flex items-center justify-between gap-4">
                             <p className="text-lg font-bold text-primary drop-shadow-sm">{price.toLocaleString()}đ</p>

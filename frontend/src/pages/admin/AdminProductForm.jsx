@@ -37,12 +37,17 @@ const AdminProductForm = () => {
             name: product.name || '',
             description: product.description || '',
             origin: product.origin || '',
-            categoryId: product.category?.id || '',
-            weights: product.weights && product.weights.length > 0 
-              ? product.weights.map(w => ({ ...w })) 
+            categoryId: product.categoryId?._id || product.categoryId || '', // MongoDB populate hoặc ObjectId string
+            weights: product.weights && product.weights.length > 0
+              ? product.weights.map(w => ({ weight: w.weight, price: w.price, stock: w.stock }))
               : [{ weight: 100, price: 0, stock: 0 }]
           });
-          setProductImages(product.images || []);
+          // Nếu có imageUrl, tạo mảng ảnh từ nó
+          if (product.imageUrl) {
+            setProductImages([{ imageUrl: product.imageUrl, isMain: true }]);
+          } else {
+            setProductImages([]);
+          }
           setLoading(false);
         })
         .catch(err => {
@@ -84,17 +89,31 @@ const AdminProductForm = () => {
     setUploading(true);
     try {
       const res = await adminApi.uploadFiles(files);
-      const newImages = res.data.map((url, index) => ({
+      
+      // Backend trả về: { message, files: [{url, filename, originalName, size}] }
+      // Hoặc nếu 1 file: { message, url, filename, ... }
+      let uploadedUrls = [];
+      if (res.data.files && Array.isArray(res.data.files)) {
+        uploadedUrls = res.data.files.map(f => f.url); // multiple images
+      } else if (res.data.url) {
+        uploadedUrls = [res.data.url]; // single image
+      }
+
+      const newImages = uploadedUrls.map((url, index) => ({
         imageUrl: url,
-        isMain: productImages.length === 0 && index === 0, // Set first as main if gallery empty
+        isMain: productImages.length === 0 && index === 0,
         sortOrder: productImages.length + index
       }));
+
       setProductImages(prev => [...prev, ...newImages]);
     } catch (err) {
       console.error("Upload failed", err);
-      alert("Tải ảnh thất bại!");
+      const msg = err.response?.data?.message || 'Lỗi không xác định';
+      alert(`Tải ảnh thất bại! ${msg}`);
     } finally {
       setUploading(false);
+      // Reset input để có thể chọn lại cùng file
+      e.target.value = '';
     }
   };
 
@@ -123,28 +142,29 @@ const AdminProductForm = () => {
       // Use the main image URL for the product's primary imageUrl field
       const mainImg = productImages.find(img => img.isMain) || productImages[0];
       
+      // Node.js / MongoDB format
       const payload = {
         name: formData.name,
         description: formData.description,
         origin: formData.origin,
         imageUrl: mainImg ? mainImg.imageUrl : '',
-        category: formData.categoryId ? { id: parseInt(formData.categoryId) } : null,
-        images: productImages.map((img, idx) => ({
-          id: img.id || null,
-          imageUrl: img.imageUrl,
-          isMain: img.isMain || (idx === 0 && !productImages.some(i => i.isMain)),
-          sortOrder: idx
-        })),
-        weights: formData.weights.map(w => ({
-          id: w.id || null,
+        categoryId: formData.categoryId || null,    // ObjectId string
+        price: formData.weights[0]?.price || 0,     // Giá cơ bản lấy từ loại đầu tiên
+        stock: formData.weights.reduce((sum, w) => sum + (parseInt(w.stock) || 0), 0), // Tổng tồn kho
+        weights: JSON.stringify(formData.weights.map(w => ({
           weight: parseInt(w.weight) || 0,
           price: parseFloat(w.price) || 0,
           stock: parseInt(w.stock) || 0
-        }))
+        }))),
+        images: JSON.stringify(productImages.map(img => ({
+          imageUrl: img.imageUrl,
+          isMain: img.isMain || false,
+          sortOrder: img.sortOrder || 0
+        })))
       };
       
       if (isEditMode) {
-        payload.id = parseInt(id);
+        payload._id = id; // MongoDB _id string
       }
       
       await adminApi.saveProduct(payload);
@@ -193,7 +213,7 @@ const AdminProductForm = () => {
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Danh mục</label>
               <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer font-medium">
                 <option value="">Chọn danh mục</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select>
             </div>
           </div>

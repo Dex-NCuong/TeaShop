@@ -16,7 +16,7 @@ const AdminBrewingGuides = () => {
     setLoading(true);
     adminApi.getBrewingGuides()
       .then(res => {
-        setGuides(res.data);
+        setGuides(res.data.data || res.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -57,7 +57,7 @@ const AdminBrewingGuides = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
          {guides.map((guide) => (
-           <div key={guide.id} className="card group relative flex flex-col hover:border-primary/20 transition-all overflow-hidden">
+           <div key={guide._id} className="card group relative flex flex-col hover:border-primary/20 transition-all overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1.5 bg-primary/20 group-hover:bg-primary transition-colors"></div>
               
               <div className="flex items-center justify-between mb-8">
@@ -66,13 +66,13 @@ const AdminBrewingGuides = () => {
                  </div>
                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
-                      onClick={() => navigate(`/admin/brewing-guides/${guide.id}/edit`)}
+                      onClick={() => navigate(`/admin/brewing-guides/${guide._id}/edit`)}
                       className="p-2 text-slate-400 hover:text-primary transition-all"
                     >
                       <Edit2 className="size-4" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(guide.id)}
+                      onClick={() => handleDelete(guide._id)}
                       className="p-2 text-slate-400 hover:text-rose-500 transition-all"
                     >
                       <Trash2 className="size-4" />
@@ -91,13 +91,13 @@ const AdminBrewingGuides = () => {
                        </div>
                        <div className="min-w-0 pr-2">
                           <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Áp dụng cho</p>
-                          <p className="text-[10px] font-black truncate">{guide.product?.name || 'Tất cả trà'}</p>
+                          <p className="text-[10px] font-black truncate">{guide.productId?.name || guide.product?.name || 'Tất cả trà'}</p>
                        </div>
                     </div>
                  </div>
-                 {guide.product?.id ? (
+                 {guide.productId?._id || guide.product?._id || guide.product?.id ? (
                    <Link 
-                     to={`/product/${guide.product.id}`}
+                     to={`/product/${guide.productId?._id || guide.product?._id || guide.product?.id}`}
                      target="_blank"
                      className="size-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-primary transition-all"
                    >

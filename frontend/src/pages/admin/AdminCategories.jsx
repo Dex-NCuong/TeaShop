@@ -15,7 +15,7 @@ const AdminCategories = () => {
   const fetchData = async () => {
     try {
       const res = await adminApi.getCategories();
-      setCategories(res.data);
+      setCategories(res.data.data || res.data || []);
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -87,7 +87,7 @@ const AdminCategories = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredCategories.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                <tr key={c._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
                        <div className="size-12 rounded-2xl bg-primary/5 text-primary flex items-center justify-center font-black text-xl border border-primary/10 group-hover:scale-110 transition-transform">
@@ -101,15 +101,15 @@ const AdminCategories = () => {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                      #{c.id}
+                      #{c._id?.slice(-6)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
-                      <Link to={`/admin/categories/${c.id}/edit`} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-all">
+                      <Link to={`/admin/categories/${c._id}/edit`} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-all">
                         <Edit className="size-5" />
                       </Link>
-                      <button onClick={() => handleDelete(c.id, c.name)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl transition-all">
+                      <button onClick={() => handleDelete(c._id, c.name)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl transition-all">
                         <Trash2 className="size-5" />
                       </button>
                     </div>

@@ -56,7 +56,7 @@ const AdminCustomerForm = () => {
     try {
       const payload = { ...formData };
       if (isEditMode) {
-        payload.id = parseInt(id);
+        payload._id = id;
         // If password is empty in edit mode, don't send it or handle it in backend
         if (!payload.password) delete payload.password;
       }

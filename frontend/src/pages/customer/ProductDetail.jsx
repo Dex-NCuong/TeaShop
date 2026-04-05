@@ -86,15 +86,29 @@ const ProductDetail = () => {
       if (currentProduct.weights?.length > 0) setSelectedWeight(currentProduct.weights[0]);
       setActiveImage(currentProduct.imageUrl);
 
-      // Fetch all products to filter related ones
       const allProductsRes = await customerApi.getProducts();
-      const related = allProductsRes.data
-        .filter(p => p.category?.id === currentProduct.category?.id && p.id !== parseInt(id))
+      const relatedProductsData = allProductsRes.data.data || allProductsRes.data || [];
+      const related = relatedProductsData
+        .filter(p => p.categoryId?._id === currentProduct.categoryId?._id && p._id !== id)
         .slice(0, 4);
       setRelatedProducts(related);
 
       const reviewsRes = await customerApi.getProductReviews(id);
-      setReviews(reviewsRes.data || []);
+      setReviews(reviewsRes.data.data || []);
+
+      const guidesRes = await customerApi.getBrewingGuides();
+      const guidesData = guidesRes.data?.data || guidesRes.data || [];
+      const productGuides = guidesData.filter((g) => {
+        const guideProd = g.productId;
+        if (!guideProd) return false;
+        
+        const isSameProduct = (guideProd._id || guideProd) === id;
+        const isSameCategory = guideProd.categoryId && currentProduct.categoryId && 
+          (guideProd.categoryId?._id || guideProd.categoryId) === (currentProduct.categoryId?._id || currentProduct.categoryId);
+        
+        return isSameProduct || isSameCategory;
+      });
+      setProduct({ ...currentProduct, brewingGuides: productGuides });
       
       setLoading(false);
     } catch (err) {
@@ -117,13 +131,13 @@ const ProductDetail = () => {
       await customerApi.submitReview(id, {
         rating,
         comment,
-        user: { id: user.id }
+        userId: user._id
       });
       setComment('');
       setRating(5);
       // Refresh reviews
       const reviewsRes = await customerApi.getProductReviews(id);
-      setReviews(reviewsRes.data || []);
+      setReviews(reviewsRes.data.data || []);
       alert("Gửi đánh giá thành công!");
     } catch (err) {
       console.error(err);
@@ -202,7 +216,7 @@ const ProductDetail = () => {
           <div className="space-y-10">
             <div className="space-y-4">
               <span className="px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/10">
-                {product.category?.name}
+                {product.categoryId?.name}
               </span>
               <h1 className="text-4xl font-bold tracking-tighter leading-tight text-slate-900 dark:text-white">{product.name}</h1>
               <div className="flex items-center gap-4">
@@ -223,10 +237,10 @@ const ProductDetail = () => {
               <div className="flex flex-wrap gap-3">
                 {product.weights?.map((w) => (
                   <button 
-                    key={w.id}
+                    key={w._id}
                     onClick={() => setSelectedWeight(w)}
                     className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all border-2 relative ${
-                      selectedWeight?.id === w.id 
+                      selectedWeight?._id === w._id 
                         ? 'border-primary bg-primary/5 text-primary' 
                         : 'border-slate-100 dark:border-slate-800 text-slate-400 hover:border-primary/30'
                     } ${w.stock === 0 ? 'opacity-50' : ''}`}
@@ -387,14 +401,14 @@ const ProductDetail = () => {
               {currentReviews.length > 0 ? (
                 <>
                   {currentReviews.map((rev) => (
-                    <div key={rev.id} className="p-10 rounded-[40px] bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 shadow-sm space-y-6 hover:border-primary/30 transition-all duration-500 group">
+                    <div key={rev._id} className="p-10 rounded-[40px] bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 shadow-sm space-y-6 hover:border-primary/30 transition-all duration-500 group">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center font-black text-primary text-sm shadow-inner group-hover:scale-110 transition-transform">
-                            {rev.user?.fullName?.charAt(0).toUpperCase() || 'K'}
+                            {rev.userId?.fullName?.charAt(0).toUpperCase() || 'K'}
                           </div>
                           <div>
-                            <p className="font-black text-slate-900 dark:text-white">{rev.user?.fullName || 'Khách hàng'}</p>
+                            <p className="font-black text-slate-900 dark:text-white">{rev.userId?.fullName || 'Khách hàng'}</p>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                               {new Date(rev.createdAt).toLocaleDateString('vi-VN')}
                               <span className="size-1 rounded-full bg-slate-200"></span>
@@ -565,8 +579,8 @@ const ProductDetail = () => {
                 const price = p.weights?.[0]?.price || 0;
                 return (
                   <Link 
-                    key={p.id} 
-                    to={`/product/${p.id}`} 
+                    key={p._id} 
+                    to={`/product/${p._id}`} 
                     className="group flex flex-col space-y-8"
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                   >
@@ -580,7 +594,7 @@ const ProductDetail = () => {
                       </div>
                     </div>
                     <div className="space-y-4 px-2">
-                       <div className="text-[12px] font-black text-primary uppercase tracking-[0.3em]">{p.category?.name}</div>
+                       <div className="text-[12px] font-black text-primary uppercase tracking-[0.3em]">{p.categoryId?.name}</div>
                        <h3 className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1 leading-tight tracking-tight">{p.name}</h3>
                        <div className="flex items-center justify-between gap-4">
                         <div className="flex flex-col">

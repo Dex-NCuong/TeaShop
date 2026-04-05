@@ -21,7 +21,7 @@ const AdminBlogCategories = () => {
     try {
       setLoading(true);
       const res = await adminApi.getBlogCategories();
-      setCategories(res.data);
+      setCategories(res.data.data || res.data || []);
     } catch (err) {
       console.error('Lỗi khi tải danh mục:', err);
     } finally {
@@ -66,7 +66,7 @@ const AdminBlogCategories = () => {
 
     try {
       await adminApi.deleteBlogCategory(id);
-      setCategories(categories.filter(c => c.id !== id));
+      setCategories(categories.filter(c => c._id !== id));
     } catch (err) {
       console.error('Lỗi khi xóa danh mục:', err);
       alert('Không thể xóa danh mục này.');
@@ -115,7 +115,7 @@ const AdminBlogCategories = () => {
       {/* Grid List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          {filteredCategories.map((cat) => (
-           <div key={cat.id} className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/20 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500 relative overflow-hidden">
+           <div key={cat._id} className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-primary/20 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500 relative overflow-hidden">
               <div className="absolute top-0 right-0 size-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700"></div>
               
               <div className="flex items-center gap-6 relative z-10">
@@ -136,7 +136,7 @@ const AdminBlogCategories = () => {
                      <Edit2 className="size-5" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(cat.id)}
+                    onClick={() => handleDelete(cat._id)}
                     className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-2xl transition-all shadow-sm"
                   >
                      <Trash2 className="size-5" />

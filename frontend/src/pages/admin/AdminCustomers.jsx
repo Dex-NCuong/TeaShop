@@ -16,7 +16,7 @@ const AdminCustomers = () => {
     setLoading(true);
     adminApi.getCustomers()
       .then(res => {
-        setCustomers(res.data);
+        setCustomers(res.data.data || res.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -104,7 +104,7 @@ const AdminCustomers = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredCustomers.length > 0 ? filteredCustomers.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                <tr key={user._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="size-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-100 dark:border-slate-800 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform duration-500">
@@ -152,13 +152,13 @@ const AdminCustomers = () => {
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
                       <Link 
-                        to={`/admin/customers/${user.id}/edit`}
+                        to={`/admin/customers/${user._id}/edit`}
                         className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
                       >
                         <Edit className="size-5" />
                       </Link>
                       <button 
-                        onClick={() => handleDelete(user.id, user.fullName)}
+                        onClick={() => handleDelete(user._id, user.fullName)}
                         className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl transition-all"
                       >
                         <Trash2 className="size-5" />

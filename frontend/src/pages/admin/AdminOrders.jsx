@@ -17,7 +17,7 @@ const AdminOrders = () => {
   const fetchOrders = () => {
     adminApi.getOrders()
       .then(res => {
-        setOrders(res.data);
+        setOrders(res.data.data || res.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -29,7 +29,7 @@ const AdminOrders = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await adminApi.updateOrderStatus(orderId, newStatus);
-      setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
     } catch (err) {
       console.error('Lỗi cập nhật trạng thái:', err);
       alert('Không thể cập nhật trạng thái đơn hàng');
@@ -58,9 +58,9 @@ const AdminOrders = () => {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
-      order.id.toString().includes(searchTerm) ||
-      order.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order._id?.includes(searchTerm) ||
+      order.userId?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (order.vnpTxnRef && order.vnpTxnRef.includes(searchTerm));
     
     const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
@@ -146,10 +146,10 @@ const AdminOrders = () => {
               {filteredOrders.map((order) => {
                 const StatusIcon = getStatusIcon(order.status);
                 return (
-                  <tr key={order.id} className="hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors group">
+                  <tr key={order._id} className="hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors group">
                     <td className="px-10 py-8">
                       <div className="space-y-1">
-                        <p className="font-black text-sm text-[#2d5a27] tracking-tighter">#ORD-{order.id.toString().padStart(6, '0')}</p>
+                        <p className="font-black text-sm text-[#2d5a27] tracking-tighter">#ORD-{order._id?.slice(-6)}</p>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">
                           {new Date(order.orderDate).toLocaleString('vi-VN')}
                         </p>
@@ -163,13 +163,13 @@ const AdminOrders = () => {
                     </td>
                     <td className="px-6 py-8">
                       <div className="flex items-center gap-4">
-                         <div className="size-12 rounded-[1.25rem] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center font-black text-sm text-slate-500 uppercase shadow-inner">
-                            {(order.user?.fullName || 'U')[0]}
-                         </div>
-                         <div>
-                            <p className="font-black text-sm text-slate-900 dark:text-white leading-tight">{order.user?.fullName || 'Ẩn danh'}</p>
-                            <p className="text-[10px] text-slate-400 font-bold">{order.user?.email}</p>
-                         </div>
+                         <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center font-black text-primary text-sm shadow-inner group-hover:scale-110 transition-transform">
+                            {(order.userId?.fullName || 'U')[0]}
+                          </div>
+                          <div>
+                            <p className="font-black text-sm text-slate-900 dark:text-white leading-tight">{order.userId?.fullName || 'Ẩn danh'}</p>
+                            <p className="text-[10px] text-slate-400 font-bold">{order.userId?.email}</p>
+                          </div>
                       </div>
                     </td>
                     <td className="px-6 py-8">
@@ -200,7 +200,7 @@ const AdminOrders = () => {
                           <div className="relative group/select">
                              <select 
                                value={order.status}
-                               onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                               onChange={(e) => handleStatusChange(order._id, e.target.value)}
                                className="appearance-none text-[10px] font-black uppercase tracking-widest border-2 border-slate-100 dark:border-slate-800 rounded-2xl pl-4 pr-10 py-3 bg-white dark:bg-slate-900 outline-none focus:border-[#2d5a27] transition-all cursor-pointer shadow-sm"
                              >
                                 <option value="Pending">Chờ duyệt</option>
@@ -211,7 +211,7 @@ const AdminOrders = () => {
                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 size-3 text-slate-400 pointer-events-none group-hover/select:text-primary transition-colors" />
                           </div>
                           <button 
-                            onClick={() => navigate(`/order/${order.id}`)}
+                            onClick={() => navigate(`/order/${order._id}`)}
                             className="p-3 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-[#2d5a27] hover:bg-[#2d5a27]/10 rounded-[1.25rem] transition-all hover:rotate-12"
                           >
                              <Eye className="size-5" />

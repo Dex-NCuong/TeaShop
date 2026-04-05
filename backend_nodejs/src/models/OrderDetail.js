@@ -1,25 +1,13 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db');
+const mongoose = require('mongoose');
 
-const OrderDetail = sequelize.define('OrderDetail', {
-    id: {
-        type: DataTypes.BIGINT,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    orderId: {
-        type: DataTypes.BIGINT,
-        field: 'order_id'
-    },
-    productId: {
-        type: DataTypes.BIGINT,
-        field: 'product_id'
-    },
-    price: DataTypes.DOUBLE,
-    quantity: DataTypes.INTEGER
-}, {
-    tableName: 'order_details',
-    timestamps: false
-});
+const orderDetailSchema = new mongoose.Schema({
+    orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    productName: { type: String, required: true }, // Lưu tên để backup nếu sp bị xóa
+    weight: { type: Number, required: true },
+    price: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+    subtotal: { type: Number, required: true }
+}, { timestamps: true });
 
-module.exports = OrderDetail;
+module.exports = mongoose.model('OrderDetail', orderDetailSchema);

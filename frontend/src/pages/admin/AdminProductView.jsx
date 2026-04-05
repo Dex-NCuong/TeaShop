@@ -46,15 +46,15 @@ const AdminProductView = () => {
           <div>
             <h2 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white">Chi tiết sản phẩm</h2>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-slate-500 font-medium tracking-widest text-[10px] uppercase">ID: #{product.id}</span>
+              <span className="text-slate-500 font-medium tracking-widest text-[10px] uppercase">ID: #{product._id?.slice(-6)}</span>
               <span className="w-1 h-1 rounded-full bg-slate-300"></span>
               <span className="text-primary font-bold tracking-widest text-[10px] uppercase bg-primary/10 px-2 py-0.5 rounded-md">
-                {product.category?.name || 'Chưa phân loại'}
+                {product.categoryId?.name || 'Chưa phân loại'}
               </span>
             </div>
           </div>
         </div>
-        <Link to={`/admin/products/${product.id}/edit`} className="btn-primary bg-slate-900 shadow-slate-900/20 hover:bg-slate-800 dark:bg-white dark:text-slate-900">
+        <Link to={`/admin/products/${product._id}/edit`} className="btn-primary bg-slate-900 shadow-slate-900/20 hover:bg-slate-800 dark:bg-white dark:text-slate-900">
           <Edit className="size-4" />
           Chỉnh sửa ngay
         </Link>

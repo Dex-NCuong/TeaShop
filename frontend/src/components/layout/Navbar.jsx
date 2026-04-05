@@ -55,7 +55,11 @@ const Navbar = () => {
     { to: "/blog", label: "Blog" },
   ];
 
-  const isAdmin = user?.roles?.some(role => role.name === 'ADMIN');
+  // Backend Node.js trả về roles là mảng string VD: ["ADMIN", "USER"]
+  const isAdmin = user?.roles?.some(role => 
+    role === 'ADMIN' || role === 'ROLE_ADMIN' ||          // string format (Node.js)
+    role?.name === 'ADMIN' || role?.name === 'ROLE_ADMIN' // object format (legacy)
+  );
 
   return (
     <nav className={`sticky top-0 left-0 w-full z-50 bg-slate-900 border-b border-white/5 transition-all duration-500 ${

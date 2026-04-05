@@ -10,8 +10,7 @@ import {
   Lock,
   ArrowRight
 } from 'lucide-react';
-import { provinceApi } from '../../api/api';
-import axios from 'axios';
+import api, { provinceApi } from '../../api/api';
 
 // Re-defining icons using Lucide to match the mockup's spirit
 const Checkout = () => {
@@ -123,16 +122,16 @@ const Checkout = () => {
     }
 
     try {
-        const fullAddress = `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.province}`;
-        const response = await axios.post('/api/payment/create-payment', {
+        const response = await api.post('/payment/create-payment', {
             amount: total,
             orderData: {
-                userId: user.id,
+                userId: user.id || user._id, // Ưu tiên .id mới, fallback ._id cũ
                 amount: total,
                 items: cartItems.map(item => ({
-                    productId: item.id,
+                    productId: item._id,
                     quantity: item.quantity,
-                    price: item.price
+                    price: item.price,
+                    weight: item.weight
                 })),
                 shippingInfo: {
                     fullName: formData.fullName,

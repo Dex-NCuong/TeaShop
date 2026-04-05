@@ -7,12 +7,12 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
   const [userId, setUserId] = useState(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    return user ? user.id : null;
+    return user ? (user._id || user.id) : null;
   });
 
   const [cartItems, setCartItems] = useState(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    const key = user ? `cart_${user.id}` : 'cart_guest';
+    const key = user ? `cart_${user._id || user.id}` : 'cart_guest';
     const savedCart = localStorage.getItem(key);
     return savedCart ? JSON.parse(savedCart) : [];
   });
@@ -26,7 +26,7 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const handleAuthChange = () => {
       const user = JSON.parse(localStorage.getItem('user'));
-      const newUserId = user ? user.id : null;
+      const newUserId = user ? (user._id || user.id) : null;
       
       // Before updating userId, the current cartItems will be saved to the OLD userId's key by the other useEffect
       // So we just need to update userId and cartItems will be loaded from the NEW key
@@ -42,7 +42,7 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product, weight, quantity) => {
     setCartItems(prev => {
-      const itemKey = `${product.id}-${weight.id}`;
+      const itemKey = `${product._id || product.id}-${weight._id || weight.id}`;
       const existingItem = prev.find(item => item.itemKey === itemKey);
 
       if (existingItem) {
@@ -55,10 +55,11 @@ export const CartProvider = ({ children }) => {
 
       return [...prev, {
         itemKey,
-        id: product.id,
+        _id: product._id || product.id,
+        id: product._id || product.id,
         name: product.name,
         image: product.imageUrl,
-        weightId: weight.id,
+        weightId: weight._id || weight.id,
         weight: weight.weight,
         price: weight.price,
         stock: weight.stock,

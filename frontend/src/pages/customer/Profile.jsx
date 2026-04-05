@@ -73,7 +73,9 @@ const Profile = () => {
         address: userData.address || ''
       };
       setFormData(initialForm);
-      fetchOrders(userData.id);
+      if (userData) {
+        fetchOrders(userData._id);
+      }
 
       // If existing province, load districts
       if (userData.province) {
@@ -146,7 +148,7 @@ const Profile = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const res = await customerApi.updateProfile(user.id, formData);
+      const res = await customerApi.updateProfile(formData);
       const updatedUser = { ...user, ...formData, ...res.data };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
@@ -176,9 +178,9 @@ const Profile = () => {
     }
 
     try {
-      console.log('Đang đổi mật khẩu cho user:', user.id);
+      console.log('Đang đổi mật khẩu cho user:', user._id);
       
-      await customerApi.changePassword(user.id, {
+      await customerApi.changePassword({
         oldPassword: passData.oldPassword,
         newPassword: passData.newPassword
       });
@@ -380,15 +382,15 @@ const Profile = () => {
                   ) : orders.length > 0 ? (
                     <div className="space-y-6">
                       {orders.map(order => (
-                        <div key={order.id} className="group p-6 rounded-[32px] bg-[#f8f6f6] dark:bg-slate-950 border border-transparent hover:border-primary/20 transition-all">
+                        <div key={order._id} className="group p-6 rounded-[32px] bg-[#f8f6f6] dark:bg-slate-950 border border-transparent hover:border-primary/20 transition-all">
                           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                             <div className="flex items-center gap-4">
                               <div className="size-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm">
                                 <Package className="size-6" />
                               </div>
                               <div>
-                                <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">Đơn hàng #{order.id}</p>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{new Date(order.orderDate).toLocaleDateString('vi-VN')}</p>
+                                <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">Đơn hàng #{order._id?.slice(-6)}</p>
+                                <p className="text-xs font-bold text-slate-400 mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                               </div>
                             </div>
                             <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
@@ -408,7 +410,7 @@ const Profile = () => {
                                <span className="text-xs font-bold text-slate-500">Tổng thanh toán:</span>
                                <span className="text-lg font-black text-primary">{order.totalAmount?.toLocaleString()}đ</span>
                             </div>
-                            <button onClick={() => navigate(`/order/${order.id}`)} className="text-xs font-black text-slate-400 hover:text-[#2d5a27] transition-all flex items-center gap-1 uppercase tracking-widest">
+                            <button onClick={() => navigate(`/order/${order._id}`)} className="text-xs font-black text-slate-400 hover:text-[#2d5a27] transition-all flex items-center gap-1 uppercase tracking-widest">
                                Chi tiết
                                <ChevronRight className="size-4" />
                             </button>

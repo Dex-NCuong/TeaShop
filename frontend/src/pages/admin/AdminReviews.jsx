@@ -21,7 +21,7 @@ const AdminReviews = () => {
     setLoading(true);
     adminApi.getReviews()
       .then(res => {
-        setReviews(res.data);
+        setReviews(res.data?.data || res.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -34,7 +34,7 @@ const AdminReviews = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa đánh giá này không?')) {
       adminApi.deleteReview(id)
         .then(() => {
-          setReviews(reviews.filter(r => r.id !== id));
+          setReviews(reviews.filter(r => r._id !== id));
           alert('Đã xóa đánh giá thành công');
         })
         .catch(err => {
@@ -46,7 +46,7 @@ const AdminReviews = () => {
 
   const filteredReviews = reviews.filter(r => 
     r.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.userId?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.comment?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -96,15 +96,15 @@ const AdminReviews = () => {
 
         <div className="divide-y divide-slate-50 dark:divide-slate-800">
            {currentItems.map((review) => (
-             <div key={review.id} className="p-8 flex flex-col md:flex-row gap-8 hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
+             <div key={review._id} className="p-8 flex flex-col md:flex-row gap-8 hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
                 <div className="flex-1 space-y-6">
                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                          <div className="size-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-xs">
-                             {(review.user?.fullName || 'U')[0]}
+                             {(review.userId?.fullName || 'U')[0]}
                          </div>
                          <div>
-                            <p className="font-bold text-sm tracking-tight">{review.user?.fullName || 'Ẩn danh'}</p>
+                            <p className="font-bold text-sm tracking-tight">{review.userId?.fullName || 'Ẩn danh'}</p>
                             <div className="flex gap-0.5 mt-0.5">
                                {[1,2,3,4,5].map(s => (
                                  <Star key={s} className={`size-3 ${s <= (review.rating || 5) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`} />
@@ -124,7 +124,7 @@ const AdminReviews = () => {
                 <div className="md:w-72 space-y-4">
                    <div 
                     className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center gap-4 group cursor-pointer hover:border-primary/20 transition-all"
-                    onClick={() => review.product?.id && navigate(`/product/${review.product.id}`)}
+                    onClick={() => review.productId && navigate(`/product/${review.productId?._id || review.productId}`)}
                    >
                       <div className="size-12 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-inner shrink-0 group-hover:scale-110 transition-transform">
                          <img src={review.product?.imageUrl || 'https://placehold.co/100x100/png?text=Tra+Thom'} alt="" className="size-full object-cover" />
@@ -137,7 +137,7 @@ const AdminReviews = () => {
                    <div className="flex items-center justify-end gap-2 px-2">
                        <button 
                         className="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 flex items-center gap-2 group/del"
-                        onClick={() => handleDeleteReview(review.id)}
+                        onClick={() => handleDeleteReview(review._id)}
                        >
                          <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover/del:opacity-100 transition-all">Xóa vĩnh viễn</span>
                          <Trash2 className="size-5" />

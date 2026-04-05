@@ -1,44 +1,29 @@
-Hướng dẫn Kiểm tra (Test) Thanh toán VNPAY Sandbox
-Dự án của bạn hiện đã được tích hợp cổng thanh toán VNPAY hoàn chỉnh. Dưới đây là cách bạn thực hiện một giao dịch giả lập từ đầu đến cuối.
+# Hướng dẫn Kiểm tra (Test) Thanh toán VNPAY Sandbox (Node.js)
 
-🚀 Bước 1: Khởi động hệ thống
+Dự án hiện đã hoàn tất migration sang **Node.js**. Dưới đây là cách bạn thực hiện một giao dịch thanh toán giả lập trên localhost.
 
-    Đảm bảo Backend (Spring Boot) đang chạy trên cổng 8080.
+### 🚀 Bước 1: Khởi động hệ thống
+1. **Backend**: Chạy tại `http://localhost:5000` (lệnh `npm run dev` trong thư mục `backend_nodejs`).
+2. **Frontend**: Chạy tại `http://localhost:5173` (lệnh `npm run dev` trong thư mục `frontend`).
+3. **BẮT BUỘC (Để nhận IPN - Cập nhật đơn hàng ngầm)**:
+   - Mở terminal mới, chạy lệnh: `./ngrok http 5000`
+   - Copy link ngrok (Ví dụ: `https://abcd-123.ngrok-free.dev`) dán vào cấu hình Merchant trên VNPAY hoặc ít nhất là bạn phải dùng link này để VNPAY gọi về.
 
-    Đảm bảo Frontend (React) đang chạy trên cổng 5173.
+### 💳 Bước 2: Thông tin Thẻ Test (Sandbox)
+Khi được chuyển hướng tới trang VNPAY, hãy sử dụng thông tin sau:
+- **Ngân hàng**: NCB (Đã chọn sẵn)
+- **Số thẻ**: `9704198526191432198`
+- **Tên chủ thẻ**: `NGUYEN VAN A`
+- **Ngày phát hành**: `07/15`
+- **Mật khẩu OTP**: `123456`
 
-    BẮT BUỘC: Đảm bảo ngrok vẫn đang chạy lệnh ./ngrok http 8080 và địa chỉ https://subfoliar-arian-slouchily.ngrok-free.dev vẫn đang hoạt động.
+### ✅ Bước 3: Kiểm tra Kết quả
+1. Sau khi nhập OTP thành công, bạn sẽ được tự động chuyển về trang:
+   `http://localhost:5173/payment-result`
+2. **Kiểm tra Backend**: Trong Terminal của Node.js, bạn sẽ thấy dòng log debug:
+   `>>> VNPAY IPN: Thanh toán thành công cho đơn hàng #XXXXXX`
+   (Trạng thái đơn hàng trong MongoDB sẽ tự động chuyển từ `Pending` sang `Confirmed`).
 
-🛒 Bước 2: Thực hiện mua hàng
-
-    Truy cập vào trang sản phẩm, thêm một vài loại trà vào giỏ hàng.
-
-    Đi tới trang Giỏ hàng -> Thanh toán.
-
-    Tại trang Checkout, bạn sẽ thấy phương thức duy nhất hiện tại là Thanh toán qua VNPAY.
-
-    Điền đầy đủ thông tin nhận hàng -> Nhấn ĐẶT HÀNG QUA VNPAY.
-
-💳 Bước 3: Thanh toán tại cổng VNPAY (Giả lập)
-
-    Sau khi nhấn nút, bạn sẽ được tự động chuyển hướng sang trang thanh toán của VNPAY Sandbox. Hãy sử dụng thông tin thẻ sau:
-
-    Ngân hàng: NCB (Đã được chọn tự động)
-
-    Số thẻ: 9704198526191432198
-
-    Tên chủ thẻ: NGUYEN VAN A
-
-    Ngày phát hành: 07/15
-
-    Mật khẩu OTP: 123456 (Nhập sau khi nhấn xác nhận thẻ)
-
-✅ Bước 4: Kiểm tra kết quả
-
-    Sau khi nhập OTP thành công, VNPAY sẽ hiện thông báo thành công và tự động chuyển bạn quay lại trang Kết quả thanh toán (/payment-result) của bạn.
-
-    Bạn sẽ thấy giao diện thông báo "Thanh toán thành công" màu xanh rất đẹp.
-
-    Quan trọng: Hãy kiểm tra Terminal đang chạy Backend. Bạn sẽ thấy dòng chữ: Thanh toán thành công IPN cho đơn hàng: [Mã số]. Điều này chứng tỏ ngrok đã nhận tín hiệu "ngầm" từ VNPAY và cập nhật vào hệ thống của bạn thành công.
-
-    Mời bạn thử nghiệm giao dịch đầu tiên! Nếu có bất kỳ lỗi nào hiện ra, hãy copy thông báo lỗi trong Terminal gửi cho mình nhé!
+---
+> [!IMPORTANT]
+> Nếu bạn thấy lỗi **Code 72 (Không tìm thấy website)**, hãy đảm bảo rằng file `.env` của bạn đã có đủ 3 biến: `VNP_TMN_CODE`, `VNP_HASH_SECRET` và `VNP_RETURN_URL` (trỏ về localhost:5173).

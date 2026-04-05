@@ -33,8 +33,8 @@ const Blog = () => {
           customerApi.getBlogs(),
           customerApi.getBlogCategories()
         ]);
-        setBlogs(blogsRes.data || []);
-        setBlogCategories(catsRes.data || []);
+        setBlogs(blogsRes.data?.data || blogsRes.data || []);
+        setBlogCategories(catsRes.data?.data || catsRes.data || []);
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu blog:', err);
       } finally {
@@ -47,14 +47,14 @@ const Blog = () => {
   // Logic lọc và tìm kiếm
   const filteredBlogs = blogs.filter(blog => {
     const matchesSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory ? blog.category?.id === selectedCategory : true;
+    const matchesCategory = selectedCategory ? (blog.categoryId?._id || blog.categoryId)?.toString() === selectedCategory : true;
     return matchesSearch && matchesCategory;
   });
 
   // Logic sắp xếp
   const sortedBlogs = [...filteredBlogs].sort((a, b) => {
     if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-    if (sortBy === 'popular') return (b.views || 0) - (a.views || 0) || b.id - a.id;
+    if (sortBy === 'popular') return (b.views || 0) - (a.views || 0) || (b._id > a._id ? 1 : -1);
     return 0;
   });
 
@@ -142,15 +142,15 @@ const Blog = () => {
             {/* Posts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16">
               {currentPosts.length > 0 ? currentPosts.map((blog) => (
-                <article key={blog.id} className="group flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-                  <Link to={`/blog/${blog.id}`} className="relative aspect-[4/3] rounded-[40px] overflow-hidden mb-6 shadow-xl shadow-slate-200/50 dark:shadow-none block">
+                <article key={blog._id} className="group flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <Link to={`/blog/${blog._id}`} className="relative aspect-[4/3] rounded-[40px] overflow-hidden mb-6 shadow-xl shadow-slate-200/50 dark:shadow-none block">
                     <img 
                       src={blog.imageUrl || 'https://images.unsplash.com/photo-1594631252845-29fc458639a0?q=80&w=1887&auto=format&fit=crop'} 
                       alt={blog.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute top-6 left-6 px-4 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
-                      {blog.category?.name || 'Trà Thơm'}
+                      {blog.categoryId?.name || 'Trà Thơm'}
                     </div>
                   </Link>
                   
@@ -161,14 +161,14 @@ const Blog = () => {
                     </div>
                     
                     <h3 className="text-2xl font-black leading-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2 uppercase tracking-tighter">
-                      <Link to={`/blog/${blog.id}`}>{blog.title}</Link>
+                      <Link to={`/blog/${blog._id}`}>{blog.title}</Link>
                     </h3>
                     
                     <p className="text-slate-500 dark:text-slate-400 text-sm font-medium line-clamp-2 leading-relaxed">
                       {blog.summary || (blog.content ? blog.content.substring(0, 100).replace(/<[^>]*>?/gm, '') + '...' : '')}
                     </p>
                     
-                    <Link to={`/blog/${blog.id}`} className="inline-flex items-center gap-2 text-primary text-[10px] font-black uppercase tracking-widest group/link pt-2 underline underline-offset-4">
+                    <Link to={`/blog/${blog._id}`} className="inline-flex items-center gap-2 text-primary text-[10px] font-black uppercase tracking-widest group/link pt-2 underline underline-offset-4">
                       Đọc tiếp 
                       <ArrowRight className="size-4 group-hover/link:translate-x-2 transition-transform" />
                     </Link>
@@ -254,14 +254,14 @@ const Blog = () => {
                   </button>
                 </li>
                 {blogCategories.map(cat => (
-                  <li key={cat.id}>
+                  <li key={cat._id}>
                     <button 
-                      onClick={() => {setSelectedCategory(cat.id); setCurrentPage(1);}}
-                      className={`flex items-center justify-between w-full group ${selectedCategory === cat.id ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}
+                      onClick={() => {setSelectedCategory(cat._id); setCurrentPage(1);}}
+                      className={`flex items-center justify-between w-full group ${selectedCategory === cat._id ? 'text-primary' : 'text-slate-600 dark:text-slate-400'}`}
                     >
                       <span className="font-bold uppercase tracking-tight text-sm group-hover:text-primary transition-colors">{cat.name}</span>
                       <span className="size-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black group-hover:bg-primary/10 transition-all">
-                        {blogs.filter(b => b.category?.id === cat.id).length}
+                        {blogs.filter(b => (b.categoryId?._id || b.categoryId)?.toString() === cat._id).length}
                       </span>
                     </button>
                   </li>
@@ -277,7 +277,7 @@ const Blog = () => {
               </h4>
               <div className="space-y-8">
                 {recentPosts.length > 0 ? recentPosts.map(post => (
-                  <Link key={post.id} to={`/blog/${post.id}`} className="flex gap-5 group">
+                  <Link key={post._id} to={`/blog/${post._id}`} className="flex gap-5 group">
                     <div className="size-20 shrink-0 rounded-[20px] overflow-hidden shadow-lg shadow-slate-200/50 dark:shadow-none bg-slate-100">
                       <img src={post.imageUrl || 'https://images.unsplash.com/photo-1594631252845-29fc458639a0?q=80&w=1887&auto=format&fit=crop'} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     </div>

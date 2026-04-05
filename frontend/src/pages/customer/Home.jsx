@@ -15,7 +15,9 @@ const Home = () => {
   useEffect(() => {
     customerApi.getProducts()
       .then(res => {
-        setFeaturedProducts(res.data.slice(0, 4));
+        // Sau khi chia bảng, dữ liệu nằm trong res.data.data
+        const products = res.data.data || [];
+        setFeaturedProducts(products.slice(0, 4));
         setLoading(false);
       })
       .catch(err => {
@@ -112,7 +114,7 @@ const Home = () => {
               ))
             ) : (
               featuredProducts.map((p) => (
-                <Link key={p.id} to={`/product/${p.id}`} className="group flex flex-col space-y-6">
+                <Link key={p._id} to={`/product/${p._id}`} className="group flex flex-col space-y-6">
                   <div className="aspect-[4/5] rounded-[32px] overflow-hidden bg-slate-50 dark:bg-slate-900 relative border border-slate-100 dark:border-slate-800 transition-all duration-500 hover:shadow-2xl">
                     <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     {p.weights?.[0]?.stock < 5 && (
@@ -120,7 +122,7 @@ const Home = () => {
                     )}
                   </div>
                   <div className="space-y-3 px-1">
-                    <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">{p.category?.name}</div>
+                    <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">{p.categoryId?.name}</div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1 leading-tight">{p.name}</h3>
                     <div className="flex items-center justify-between gap-4">
                       <p className="text-lg font-bold text-primary drop-shadow-sm">{(p.weights?.[0]?.price || 0).toLocaleString()}đ</p>

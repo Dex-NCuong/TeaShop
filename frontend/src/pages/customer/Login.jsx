@@ -50,7 +50,9 @@ const Login = () => {
         setTimeout(() => setIsForgotPassword(false), 2000);
       } else if (isLogin) {
         const res = await authApi.login({ email: formData.email, password: formData.password });
-        localStorage.setItem('user', JSON.stringify(res.data.user));
+        // Lưu cả token lẫn thông tin user vào localStorage
+        const userData = { ...res.data.user, token: res.data.token };
+        localStorage.setItem('user', JSON.stringify(userData));
         window.dispatchEvent(new Event('authChange'));
         navigate('/');
       } else {

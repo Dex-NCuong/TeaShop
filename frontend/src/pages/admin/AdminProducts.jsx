@@ -30,9 +30,13 @@ const AdminProducts = () => {
 
   const fetchData = async () => {
     try {
-      const res = await adminApi.getProducts();
-      setProducts(res.data.products || []);
-      setCategories(res.data.categories || []);
+      // Backend trả về { data: [...], pagination: {...} }
+      const [prodRes, catRes] = await Promise.all([
+        adminApi.getProducts(),
+        adminApi.getCategories()
+      ]);
+      setProducts(prodRes.data.data || []);
+      setCategories(catRes.data || []);
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -54,7 +58,7 @@ const AdminProducts = () => {
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (filterCategory === '' || p.category?.id.toString() === filterCategory)
+    (filterCategory === '' || (p.categoryId?._id || p.categoryId)?.toString() === filterCategory)
   );
 
   // Reset to page 1 when filters change
@@ -109,7 +113,7 @@ const AdminProducts = () => {
             >
               <option value="">Lọc theo danh mục</option>
               {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat._id} value={cat._id}>{cat.name}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
@@ -138,7 +142,7 @@ const AdminProducts = () => {
                 else if (totalStock <= 5) stockStatusColor = 'bg-amber-500';
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                  <tr key={p._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="size-14 rounded-2xl bg-slate-50 dark:bg-slate-800 overflow-hidden border border-slate-100 dark:border-slate-800 p-1 group-hover:scale-110 transition-transform">
@@ -152,13 +156,13 @@ const AdminProducts = () => {
                         </div>
                         <div>
                           <p className="font-bold text-slate-900 dark:text-white leading-tight">{p.name}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-widest">#{p.id}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-widest">#{p._id?.slice(-6)}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 rounded-lg bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
-                        {p.category?.name || 'Chưa phân loại'}
+                        {p.categoryId?.name || 'Chưa phân loại'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -178,13 +182,13 @@ const AdminProducts = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
-                        <Link to={`/admin/products/${p.id}`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
+                        <Link to={`/admin/products/${p._id}`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
                           <Eye className="size-5" />
                         </Link>
-                        <Link to={`/admin/products/${p.id}/edit`} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-all">
+                        <Link to={`/admin/products/${p._id}/edit`} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-all">
                           <Edit className="size-5" />
                         </Link>
-                        <button onClick={() => handleDelete(p.id, p.name)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl transition-all">
+                        <button onClick={() => handleDelete(p._id, p.name)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl transition-all">
                           <Trash2 className="size-5" />
                         </button>
                       </div>

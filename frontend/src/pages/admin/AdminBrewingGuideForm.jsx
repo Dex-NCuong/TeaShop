@@ -8,6 +8,7 @@ const AdminBrewingGuideForm = () => {
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
   
+  const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
@@ -19,33 +20,26 @@ const AdminBrewingGuideForm = () => {
   });
 
   useEffect(() => {
-    // Fetch products for the dropdown
-    adminApi.getProducts()
-      .then(res => {
-        // res.data is expected to be { products: [...], categories: [...] }
-        const productData = res.data?.products || [];
-        if (Array.isArray(productData)) {
-          setProducts(productData);
-        } else if (Array.isArray(res.data)) {
-          // Fallback if API returns array directly
-          setProducts(res.data);
-        } else {
-          console.error("Unexpected product data format:", res.data);
-          setProducts([]);
-        }
-      })
-      .catch(err => console.error("Failed to load products", err));
+    Promise.all([
+      adminApi.getProducts({ limit: 100 }), // Get all products
+      adminApi.getCategories()
+    ]).then(([prodRes, catRes]) => {
+      const pData = prodRes.data?.data || prodRes.data || [];
+      const cData = catRes.data?.data || catRes.data || [];
+      setProducts(pData);
+      setCategories(cData);
+    }).catch(err => console.error("Failed to load products/categories", err));
 
     if (isEditMode) {
       adminApi.getBrewingGuides()
         .then(res => {
           if (Array.isArray(res.data)) {
-            const guide = res.data.find(g => g.id === parseInt(id));
+            const guide = res.data.find(g => g._id === id);
             if (guide) {
               setFormData({
                 title: guide.title || '',
                 content: guide.content || '',
-                productId: guide.product?.id || ''
+                productId: guide.productId?._id || guide.productId || ''
               });
             } else {
               alert("Không tìm thấy hướng dẫn");
@@ -73,11 +67,11 @@ const AdminBrewingGuideForm = () => {
       const payload = {
         title: formData.title,
         content: formData.content,
-        product: formData.productId ? { id: parseInt(formData.productId) } : null
+        productId: formData.productId || null
       };
       
       if (isEditMode) {
-        payload.id = parseInt(id);
+        payload._id = id;
       }
       
       await adminApi.saveBrewingGuide(payload);
@@ -135,7 +129,17 @@ const AdminBrewingGuideForm = () => {
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer font-medium"
               >
                 <option value="">Chọn sản phẩm</option>
-                {Array.isArray(products) && products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                {categories.map(cat => {
+                  const catProducts = Array.isArray(products) ? products.filter(p => (p.categoryId?._id || p.categoryId) === cat._id) : [];
+                  if (catProducts.length === 0) return null;
+                  return (
+                    <optgroup key={cat._id} label={cat.name}>
+                      {catProducts.map(p => (
+                        <option key={p._id} value={p._id}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
               </select>
             </div>
           </div>

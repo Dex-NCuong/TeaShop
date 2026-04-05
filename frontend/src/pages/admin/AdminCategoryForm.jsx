@@ -46,7 +46,7 @@ const AdminCategoryForm = () => {
       };
       
       if (isEditMode) {
-        payload.id = parseInt(id);
+        payload._id = id; // MongoDB dùng _id string, không parseInt
       }
       
       await adminApi.saveCategory(payload);

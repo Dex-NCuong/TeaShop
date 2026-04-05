@@ -39,7 +39,7 @@ const BlogDetail = () => {
   }, [id]);
 
   const recentPosts = [...blogs]
-    .filter(b => b.id !== parseInt(id))
+    .filter(b => b._id !== id)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 3);
 
@@ -77,7 +77,7 @@ const BlogDetail = () => {
 
           <div className="max-w-4xl">
             <span className="px-5 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8 inline-block">
-              {blog.category?.name}
+              {blog.categoryId?.name}
             </span>
             <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-10 leading-[1.1] tracking-[-0.03em] uppercase">
               {blog.title}
@@ -139,7 +139,7 @@ const BlogDetail = () => {
                <div className="flex items-center gap-4">
                   <Tag className="size-5 text-primary" />
                   <div className="flex gap-2">
-                    <span className="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold uppercase tracking-widest">{blog.category?.name}</span>
+                    <span className="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold uppercase tracking-widest">{blog.categoryId?.name}</span>
                     <span className="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold uppercase tracking-widest">Trà Việt</span>
                   </div>
                </div>
@@ -179,7 +179,7 @@ const BlogDetail = () => {
                </h4>
                <div className="space-y-8">
                  {recentPosts.length > 0 ? recentPosts.map(post => (
-                   <Link key={post.id} to={`/blog/${post.id}`} className="flex gap-5 group">
+                   <Link key={post._id} to={`/blog/${post._id}`} className="flex gap-5 group">
                      <div className="size-20 shrink-0 rounded-[20px] overflow-hidden shadow-lg shadow-slate-200/50 dark:shadow-none bg-slate-100">
                        <img src={post.imageUrl || 'https://images.unsplash.com/photo-1594631252845-29fc458639a0?q=80&w=1887'} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                      </div>
@@ -206,9 +206,9 @@ const BlogDetail = () => {
                </h4>
                <ul className="space-y-4">
                  {categories.map(cat => (
-                   <li key={cat.id}>
+                   <li key={cat._id}>
                      <Link 
-                       to={`/blog?category=${cat.id}`}
+                       to={`/blog?category=${cat._id}`}
                        className="flex items-center justify-between w-full group text-slate-600 dark:text-slate-400"
                      >
                        <span className="font-bold uppercase tracking-tight text-sm group-hover:text-primary transition-colors">{cat.name}</span>

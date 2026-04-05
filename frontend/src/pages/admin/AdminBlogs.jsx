@@ -39,8 +39,8 @@ const AdminBlogs = () => {
         adminApi.getBlogs(),
         adminApi.getBlogCategories()
       ]);
-      setBlogs(blogsRes.data || []);
-      setCategories(catsRes.data || []);
+      setBlogs(blogsRes.data?.data || blogsRes.data || []);
+      setCategories(catsRes.data?.data || catsRes.data || []);
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu:', err);
       showToast('Không thể tải dữ liệu', 'error');
@@ -62,7 +62,7 @@ const AdminBlogs = () => {
         summary: blog.summary || '',
         content: blog.content || '',
         imageUrl: blog.imageUrl || '',
-        categoryId: blog.category?.id || ''
+        categoryId: blog.categoryId?._id || blog.categoryId || ''
       });
     } else {
       setCurrentBlog(null);
@@ -71,7 +71,7 @@ const AdminBlogs = () => {
         summary: '',
         content: '',
         imageUrl: '',
-        categoryId: categories[0]?.id || ''
+        categoryId: categories[0]?._id || ''
       });
     }
     setIsModalOpen(true);
@@ -82,8 +82,8 @@ const AdminBlogs = () => {
     try {
       const payload = {
         ...formData,
-        id: currentBlog?.id,
-        category: { id: parseInt(formData.categoryId) }
+        _id: currentBlog?._id,
+        categoryId: formData.categoryId
       };
       await adminApi.saveBlog(payload);
       showToast(currentBlog ? 'Cập nhật bài viết thành công' : 'Thêm bài viết mới thành công');
@@ -115,7 +115,12 @@ const AdminBlogs = () => {
     setUploading(true);
     try {
       const res = await adminApi.uploadFiles(files);
-      const url = res.data[0]; // Lấy ảnh đầu tiên
+      let url = "";
+      if (res.data.files && Array.isArray(res.data.files)) {
+        url = res.data.files[0].url;
+      } else if (res.data.url) {
+        url = res.data.url;
+      }
       setFormData(prev => ({ ...prev, imageUrl: url }));
       showToast('Tải ảnh lên thành công');
     } catch (err) {
@@ -128,7 +133,7 @@ const AdminBlogs = () => {
 
   const filteredBlogs = blogs.filter(blog => {
     const matchesSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || blog.category?.id === parseInt(selectedCategory);
+    const matchesCategory = selectedCategory === 'all' || (blog.categoryId?._id || blog.categoryId)?.toString() === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -184,7 +189,7 @@ const AdminBlogs = () => {
           >
             <option value="all">Tất cả danh mục</option>
             {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
             ))}
           </select>
         </div>
@@ -194,7 +199,7 @@ const AdminBlogs = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredBlogs.map((blog) => (
           <article 
-            key={blog.id} 
+            key={blog._id} 
             className="bg-white dark:bg-slate-900 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden group hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500"
           >
             <div className="relative aspect-[16/10] overflow-hidden">
@@ -204,7 +209,7 @@ const AdminBlogs = () => {
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
               />
               <div className="absolute top-5 left-5 px-4 py-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest">
-                {blog.category?.name}
+                {blog.categoryId?.name}
               </div>
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <button 
@@ -214,7 +219,7 @@ const AdminBlogs = () => {
                   <Edit2 className="size-5" />
                 </button>
                 <button 
-                  onClick={() => handleDelete(blog.id)}
+                  onClick={() => handleDelete(blog._id)}
                   className="size-12 bg-white rounded-full flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all hover:scale-110"
                 >
                   <Trash2 className="size-5" />
@@ -288,7 +293,7 @@ const AdminBlogs = () => {
                          className="w-full h-14 px-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none text-sm font-bold focus:ring-4 focus:ring-primary/5 appearance-none cursor-pointer shadow-inner"
                        >
                          {categories.map(cat => (
-                           <option key={cat.id} value={cat.id}>{cat.name}</option>
+                           <option key={cat._id} value={cat._id}>{cat.name}</option>
                          ))}
                        </select>
                     </div>

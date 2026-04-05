@@ -30,6 +30,10 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>
 JWT_SECRET=your_secret_key
 CORS_ORIGIN=http://localhost:5173
+# VNPAY Sandbox (Mặc định)
+VNP_TMN_CODE=2QXG293Q
+VNP_HASH_SECRET=NGH8S0797Y99849202476100
+VNP_RETURN_URL=http://localhost:5173/payment-result
 ```
 
 ### 2. Chạy Backend (Node.js)

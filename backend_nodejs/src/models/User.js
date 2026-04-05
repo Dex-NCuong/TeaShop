@@ -9,8 +9,7 @@ const userSchema = new mongoose.Schema({
     province: String,
     district: String,
     ward: String,
-    profileImage: String,
-    roles: [String] // ["USER", "ADMIN"]
+    profileImage: String
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

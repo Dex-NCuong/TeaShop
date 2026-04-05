@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/api';
 import { 
   ShoppingBag, 
@@ -37,6 +38,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, color }) => (
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     adminApi.getDashboard()
@@ -49,6 +51,30 @@ const Dashboard = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleExport = async () => {
+    // Thêm xác nhận chuyên nghiệp
+    const isConfirmed = window.confirm(
+      "📊 XÁC NHẬN XUẤT BÁO CÁO\n\n" +
+      "Hệ thống sẽ tổng hợp toàn bộ dữ liệu đơn hàng và tải xuống dưới dạng file Excel (.xlsx).\n" +
+      "Anh có chắc chắn muốn thực hiện hành động này không?"
+    );
+
+    if (!isConfirmed) return;
+
+    try {
+      const response = await adminApi.exportOrders();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Bao_cao_don_hang.xlsx');
+      document.body.appendChild(link);
+      link.click();
+    } catch (err) {
+      console.error('Lỗi xuất file:', err);
+      alert('⚠️ Không thể xuất báo cáo! Vui lòng thử lại sau.');
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -64,7 +90,10 @@ const Dashboard = () => {
           <h2 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white">Tổng quan hệ thống</h2>
           <p className="text-slate-500 font-medium">Chào mừng trở lại! Đây là tình hình kinh doanh của Trà Thơm hôm nay.</p>
         </div>
-        <button className="btn-primary">
+        <button 
+          onClick={handleExport}
+          className="btn-primary"
+        >
           <ArrowUpRight className="size-5" />
           Xuất báo cáo
         </button>
@@ -76,14 +105,14 @@ const Dashboard = () => {
           title="Tổng đơn hàng" 
           value={stats?.totalOrders || 0} 
           icon={ShoppingBag} 
-          trend={12} 
+          trend={stats?.orderTrend} 
           color="emerald" 
         />
         <StatsCard 
           title="Doanh thu" 
           value={`${(stats?.totalRevenue || 0).toLocaleString()}đ`} 
           icon={DollarSign} 
-          trend={8} 
+          trend={stats?.revenueTrend} 
           color="amber" 
         />
         <StatsCard 
@@ -108,7 +137,10 @@ const Dashboard = () => {
               <Clock className="size-5 text-primary" />
               Đơn hàng mới nhất
             </h4>
-            <button className="text-primary text-xs font-bold uppercase tracking-widest hover:underline flex items-center gap-1">
+            <button 
+              onClick={() => navigate('/admin/orders')}
+              className="text-primary text-xs font-bold uppercase tracking-widest hover:underline flex items-center gap-1"
+            >
               Xem tất cả
               <ExternalLink className="size-3" />
             </button>
@@ -125,9 +157,9 @@ const Dashboard = () => {
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                 {stats?.latestOrders?.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-sm text-primary">#ORD-{order.id}</td>
-                    <td className="px-6 py-4 font-bold text-sm">{order.user?.fullname || 'Ẩn danh'}</td>
+                  <tr key={order._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-sm text-primary">#ORD-{order._id?.slice(-6)}</td>
+                    <td className="px-6 py-4 font-bold text-sm">{order.userId?.fullName || 'Ẩn danh'}</td>
                     <td className="px-6 py-4 font-bold text-sm">{(order.totalAmount || 0).toLocaleString()}đ</td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
