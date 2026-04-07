@@ -1,8 +1,8 @@
 const crypto = require('crypto');
 const moment = require('moment');
-const { Order } = require('../models');
-require('dotenv').config();
+const { Order, OrderDetail, Product } = require('../models');
 
+// Hàm sắp xếp các thuộc tính của object theo thứ tự bảng chữ cái (alphabetical order)
 function sortObject(obj) {
     let sorted = {};
     let str = [];
@@ -19,48 +19,69 @@ function sortObject(obj) {
     return sorted;
 }
 
+// Hàm tạo yêu cầu thanh toán gửi sang VNPAY
 exports.createPayment = async (req, res) => {
     try {
-        const { amount, orderData } = req.body;
+        const { amount, orderId, orderData, bankCode, orderInfo } = req.body;
         const txnRef = moment().format('YYYYMMDDHHmmss');
         const date = moment().format('YYYYMMDDHHmmss');
 
-        // LẤY TRỰC TIẾP TỪ .ENV (BỘ MÃ GIỐNG SPRING BOOT CỦA BẠN)
         const tmnCode = process.env.VNP_TMN_CODE; 
         const secretKey = process.env.VNP_HASH_SECRET;
 
         let vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-        const returnUrl = 'http://localhost:5173/payment-result';
+        const returnUrl = process.env.VNP_RETURN_URL || 'http://localhost:5173/payment-result';
 
-        const order = new Order({
-            userId: orderData.userId,
-            totalAmount: amount,
-            shippingFee: orderData.shippingInfo.shippingFee || 0,
-            shippingName: orderData.shippingInfo.fullName,
-            shippingPhone: orderData.shippingInfo.phone,
-            shippingEmail: orderData.shippingInfo.email,
-            shippingAddress: orderData.shippingInfo.address,
-            paymentMethod: 'VNPAY',
-            status: 'Pending',
-            vnpTxnRef: txnRef,
-            orderDate: new Date()
-        });
-        await order.save();
+        let finalAmount = amount;
 
-        // LƯU CHI TIẾT ĐƠN HÀNG VÀO BẢNG ORDERDETAILS (MỚI CHUẨN HÓA)
-        const { OrderDetail, Product } = require('../models');
-        for (const item of orderData.items) {
-            const product = await Product.findById(item.productId);
-            await OrderDetail.create({
-                orderId: order._id,
-                productId: item.productId,
-                productName: product ? product.name : 'Sản phẩm không xác định',
-                weight: item.weight || 0,
-                price: item.price,
-                quantity: item.quantity
+        // Trường hợp 1: Đã có đơn hàng từ trước (Chuẩn)
+        if (orderId) {
+            const order = await Order.findById(orderId);
+            if (order) {
+                // Lưu txnRef để đối soát khi VNPAY trả kết quả về
+                order.vnpTxnRef = txnRef;
+                await order.save();
+                finalAmount = order.totalAmount; // Dùng tiền thực tế trong DB cho an toàn
+            }
+        } 
+        // Trường hợp 2: Tạo đơn hàng mới trực tiếp (Nếu cần)
+        else if (orderData) {
+            const newOrder = new Order({
+                userId: orderData.userId,
+                totalAmount: amount,
+                shippingFee: orderData.shippingInfo?.shippingFee || 0,
+                shippingName: orderData.shippingInfo?.fullName,
+                shippingPhone: orderData.shippingInfo?.phone,
+                shippingEmail: orderData.shippingInfo?.email,
+                shippingAddress: orderData.shippingInfo?.address,
+                paymentMethod: 'VNPAY',
+                status: 'Pending',
+                vnpTxnRef: txnRef,
+                orderDate: new Date()
             });
+            await newOrder.save();
+
+            // Lưu các mặt hàng
+            for (const item of orderData.items || []) {
+                const product = await Product.findById(item.productId);
+                await OrderDetail.create({
+                    orderId: newOrder._id,
+                    productId: item.productId,
+                    productName: product ? product.name : 'Sản phẩm không xác định',
+                    weight: item.weight || item.selectedWeight || 0,
+                    price: item.price || 0,
+                    quantity: item.quantity,
+                    subtotal: (item.price || 0) * item.quantity
+                });
+            }
+            finalAmount = amount;
         }
 
+        if (!finalAmount) {
+            throw new Error("Số tiền thanh toán (amount) không hợp lệ!");
+        }
+
+        // Cấu hình các tham số cần thiết để gửi sang VNPAY
         let vnp_Params = {};
         vnp_Params['vnp_Version'] = '2.1.0';
         vnp_Params['vnp_Command'] = 'pay';
@@ -68,14 +89,17 @@ exports.createPayment = async (req, res) => {
         vnp_Params['vnp_Locale'] = 'vn';
         vnp_Params['vnp_CurrCode'] = 'VND';
         vnp_Params['vnp_TxnRef'] = txnRef;
-        vnp_Params['vnp_OrderInfo'] = 'Thanh_toan_don_hang'; // Không dấu, không cách
+        vnp_Params['vnp_OrderInfo'] = (orderInfo || 'Thanh_toan_don_hang').replace(/\s/g, '_');
         vnp_Params['vnp_OrderType'] = 'other'; 
-        vnp_Params['vnp_Amount'] = amount * 100;
+        vnp_Params['vnp_Amount'] = finalAmount * 100;
         vnp_Params['vnp_ReturnUrl'] = returnUrl;
-        vnp_Params['vnp_IpAddr'] = '127.0.0.1';
+        vnp_Params['vnp_IpAddr'] = req.ip || '127.0.0.1';
         vnp_Params['vnp_CreateDate'] = date;
-        vnp_Params['vnp_BankCode'] = 'NCB'; 
+        if (bankCode) {
+            vnp_Params['vnp_BankCode'] = bankCode;
+        }
 
+        // Sắp xếp và băm (hash)
         vnp_Params = sortObject(vnp_Params);
         
         let signData = Object.keys(vnp_Params)
@@ -83,7 +107,6 @@ exports.createPayment = async (req, res) => {
             .map((key) => {
                 let value = vnp_Params[key];
                 if (value === null || value === undefined) return '';
-                // Quan trọng: Phải encoded giá trị và đổi %20 thành + giống Java
                 return `${key}=${encodeURIComponent(value).replace(/%20/g, '+')}`;
             })
             .filter(item => item !== '')
@@ -94,14 +117,12 @@ exports.createPayment = async (req, res) => {
         
         vnp_Params['vnp_SecureHash'] = signed;
         
-        // Tạo URL cuối cùng cũng phải dùng cùng một kiểu encode
         const searchParams = new URLSearchParams();
         for (const [key, value] of Object.entries(vnp_Params)) {
             searchParams.append(key, value);
         }
         const finalUrl = vnpUrl + '?' + searchParams.toString();
 
-        console.log(">>> FINAL VNPAY URL (CANONICAL):", finalUrl);
         res.json({ url: finalUrl });
     } catch (error) {
         console.error('Lỗi tạo VNPAY:', error);
@@ -109,6 +130,7 @@ exports.createPayment = async (req, res) => {
     }
 };
 
+// Hàm xử lý kết quả trả về từ VNPAY sau khi người dùng thực hiện thanh toán
 exports.vnpayReturn = async (req, res) => {
     try {
         let vnp_Params = req.query;
