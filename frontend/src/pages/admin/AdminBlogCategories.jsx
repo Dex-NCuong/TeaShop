@@ -3,20 +3,21 @@ import { adminApi } from '../../api/api';
 import { Tag, Plus, Search, Edit2, Trash2, X, Info, CheckCircle2 } from 'lucide-react';
 
 const AdminBlogCategories = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState([]); // Danh sách danh mục bài viết
+  const [loading, setLoading] = useState(true); // Trạng thái tải dữ liệu
+  const [searchTerm, setSearchTerm] = useState(''); // Từ khóa tìm kiếm
   
-  // Modal states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [catFormData, setCatFormData] = useState({ name: '', description: '' });
-  const [isSaving, setIsSaving] = useState(false);
+  // Trạng thái cho Modal (Cửa sổ nổi)
+  const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái đóng/mở modal
+  const [editingCategory, setEditingCategory] = useState(null); // Danh mục đang được chỉnh sửa (null nếu là thêm mới)
+  const [catFormData, setCatFormData] = useState({ name: '', description: '' }); // Dữ liệu trong form
+  const [isSaving, setIsSaving] = useState(false); // Trạng thái đang lưu dữ liệu
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Hàm lấy danh sách danh mục bài viết từ máy chủ
   const fetchCategories = async () => {
     try {
       setLoading(true);
@@ -29,6 +30,7 @@ const AdminBlogCategories = () => {
     }
   };
 
+  // Mở modal để thêm mới hoặc chỉnh sửa danh mục
   const handleOpenModal = (category = null) => {
     if (category) {
       setEditingCategory(category);
@@ -40,6 +42,7 @@ const AdminBlogCategories = () => {
     setIsModalOpen(true);
   };
 
+  // Xử lý lưu thông tin danh mục (Thêm mới hoặc Cập nhật)
   const handleSave = async (e) => {
     e.preventDefault();
     if (!catFormData.name.trim()) return;
@@ -61,6 +64,7 @@ const AdminBlogCategories = () => {
     }
   };
 
+  // Xóa một danh mục bài viết
   const handleDelete = async (id) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa danh mục này? Các bài viết liên quan có thể bị ảnh hưởng.')) return;
 

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Order, Product, OrderDetail } = require('../models');
+const { Order, Product, OrderDetail, ProductWeight } = require('../models');
 const ExcelJS = require('exceljs');
 
 // GET /api/orders - Lấy tất cả đơn hàng [ADMIN]
@@ -195,22 +195,38 @@ exports.createOrder = async (req, res) => {
         for (const item of items) {
             const product = await Product.findById(item.productId).session(session);
             if (!product) {
-                throw new Error(`Sản phẩm ${item.productId} không tồn tại!`);
-            }
-            if (product.stock < item.quantity) {
-                throw new Error(`Sản phẩm ${product.name} không đủ hàng!`);
+                throw new Error(`Sản phẩm với ID ${item.productId} không tồn tại!`);
             }
 
-            product.stock -= item.quantity;
-            await product.save({ session });
+            // Tìm chi tiết khối lượng/giá (Tiered pricing)
+            // Parse weight từ "100g", "200g" -> 100, 200 (hoặc nếu là số thì dùng thẳng)
+            const weightValue = typeof item.selectedWeight === 'string' 
+                ? parseInt(item.selectedWeight) 
+                : item.selectedWeight;
 
-            totalAmount += item.price * item.quantity;
+            const pw = await ProductWeight.findOne({ productId: item.productId, weight: weightValue }).session(session);
+            if (!pw) {
+                throw new Error(`Sản phẩm ${product.name} không có tùy chọn khối lượng ${item.selectedWeight}!`);
+            }
+
+            if (pw.stock < item.quantity) {
+                throw new Error(`Số lượng trong kho của ${product.name} (${item.selectedWeight}) không đủ!`);
+            }
+
+            // Trừ tồn kho ở bảng ProductWeight (vì Product không có stock)
+            pw.stock -= item.quantity;
+            await pw.save({ session });
+
+            const itemPrice = pw.price;
+            totalAmount += itemPrice * item.quantity;
+
             orderDetails.push({
                 productId: item.productId,
                 productName: product.name,
-                price: item.price,
+                price: itemPrice,
                 quantity: item.quantity,
-                weight: item.weight || 0
+                weight: weightValue,
+                subtotal: itemPrice * item.quantity // Cần thêm field subtotal theo model OrderDetail
             });
         }
 

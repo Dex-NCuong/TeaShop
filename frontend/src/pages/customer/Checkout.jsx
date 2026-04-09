@@ -121,11 +121,20 @@ const Checkout = () => {
         return;
     }
 
+    // Kiểm tra thông tin bắt buộc
+    if (!formData.fullName || !formData.phone || !formData.address || !formData.province) {
+        alert('Vui lòng điền đầy đủ thông tin nhận hàng');
+        return;
+    }
+
     try {
+        const fullAddress = `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.province}`;
+        
         const response = await api.post('/payment/create-payment', {
             amount: total,
+            bankCode: 'NCB', // Tự động chọn NCB để test cho nhanh
             orderData: {
-                userId: user.id || user._id, // Ưu tiên .id mới, fallback ._id cũ
+                userId: user.id || user._id, 
                 amount: total,
                 items: cartItems.map(item => ({
                     productId: item._id,

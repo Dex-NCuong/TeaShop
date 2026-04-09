@@ -4,14 +4,16 @@ import { Plus, Search, Edit, Trash2, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminCategories = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState([]); // Danh sách các danh mục trà
+  const [loading, setLoading] = useState(true); // Trạng thái đang tải dữ liệu
+  const [searchTerm, setSearchTerm] = useState(''); // Từ khóa tìm kiếm danh mục
 
+  // Gọi hàm lấy dữ liệu khi component được gắn vào giao diện (mount)
   useEffect(() => {
     fetchData();
   }, []);
 
+  // Hàm lấy danh sách danh mục từ API
   const fetchData = async () => {
     try {
       const res = await adminApi.getCategories();
@@ -23,6 +25,7 @@ const AdminCategories = () => {
     }
   };
 
+  // Hàm xử lý việc xóa một danh mục
   const handleDelete = async (id, name) => {
     if (window.confirm(`Bạn có chắc muốn xóa danh mục "${name}"? Thao tác này có thể ảnh hưởng đến các sản phẩm thuộc danh mục này.`)) {
       try {
@@ -35,6 +38,7 @@ const AdminCategories = () => {
     }
   };
 
+  // Lọc danh sách danh mục dựa trên từ khóa tìm kiếm
   const filteredCategories = categories.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );

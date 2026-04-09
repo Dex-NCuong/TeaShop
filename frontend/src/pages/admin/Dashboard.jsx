@@ -12,14 +12,19 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+// Thành phần (Component) hiển thị thẻ thống kê riêng lẻ
+// Nhận vào các đạo cụ (props): tiêu đề, giá trị, biểu tượng, xu hướng tăng/giảm và màu sắc chủ đạo
 const StatsCard = ({ title, value, icon: Icon, trend, color }) => (
   <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+    {/* Vòng tròn trang trí mờ ở góc thẻ, phóng to khi di chuột vào */}
     <div className={`absolute -right-4 -top-4 size-24 bg-${color}-500/5 rounded-full group-hover:scale-150 transition-transform duration-700`}></div>
     
     <div className="flex justify-between items-start relative z-10">
+      {/* Icon của thẻ với màu sắc tương ứng */}
       <div className={`p-3 rounded-2xl bg-${color}-500/10 text-${color}-600 group-hover:scale-110 transition-transform`}>
         <Icon className="size-6" />
       </div>
+      {/* Hiển thị % xu hướng nếu có dữ liệu trend */}
       {trend && (
         <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] font-bold">
           <TrendingUp className="size-3" />
@@ -36,10 +41,11 @@ const StatsCard = ({ title, value, icon: Icon, trend, color }) => (
 );
 
 const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null); // Lưu trữ toàn bộ dữ liệu thống kê từ Backend
+  const [loading, setLoading] = useState(true); // Quản lý trạng thái đang tải (hiện Spinner)
   const navigate = useNavigate();
 
+  // Gọi API lấy dữ liệu tổng quan ngay khi vào trang Dashboard
   useEffect(() => {
     adminApi.getDashboard()
       .then(res => {
@@ -52,8 +58,9 @@ const Dashboard = () => {
       });
   }, []);
 
+  // Hàm xử lý xuất báo cáo đơn hàng ra file Excel
   const handleExport = async () => {
-    // Thêm xác nhận chuyên nghiệp
+    // Hiển thị hộp thoại xác nhận trước khi thực hiện
     const isConfirmed = window.confirm(
       "📊 XÁC NHẬN XUẤT BÁO CÁO\n\n" +
       "Hệ thống sẽ tổng hợp toàn bộ dữ liệu đơn hàng và tải xuống dưới dạng file Excel (.xlsx).\n" +
@@ -63,13 +70,18 @@ const Dashboard = () => {
     if (!isConfirmed) return;
 
     try {
+      // 1. Gọi API lấy dữ liệu dưới dạng luồng dữ liệu (blob)
       const response = await adminApi.exportOrders();
+      // 2. Tạo một đường dẫn ảo (Object URL) trỏ tới dữ liệu blob vừa tải về
       const url = window.URL.createObjectURL(new Blob([response.data]));
+      // 3. Tạo một thẻ <a> ẩn để thực hiện hành động tải xuống
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'Bao_cao_don_hang.xlsx');
+      link.setAttribute('download', 'Bao_cao_don_hang.xlsx'); // Đặt tên file mặc định
       document.body.appendChild(link);
-      link.click();
+      link.click(); // Giả lập hành động click để trình duyệt tải file
+      // 4. Dọn dẹp thẻ link sau khi hoàn tất
+      document.body.removeChild(link);
     } catch (err) {
       console.error('Lỗi xuất file:', err);
       alert('⚠️ Không thể xuất báo cáo! Vui lòng thử lại sau.');

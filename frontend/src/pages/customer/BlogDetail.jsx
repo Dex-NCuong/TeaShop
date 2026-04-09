@@ -25,9 +25,11 @@ const BlogDetail = () => {
           customerApi.getBlogs(),
           customerApi.getBlogCategories()
         ]);
-        setBlog(blogRes.data);
-        setBlogs(blogsRes.data || []);
-        setCategories(catsRes.data || []);
+        
+        // Unwrap dữ liệu từ { data: blog }
+        setBlog(blogRes.data?.data || blogRes.data);
+        setBlogs(blogsRes.data?.data || blogsRes.data || []);
+        setCategories(catsRes.data?.data || catsRes.data || []);
       } catch (err) {
         console.error('Lỗi khi tải bài viết:', err);
       } finally {

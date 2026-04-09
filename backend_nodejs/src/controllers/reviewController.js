@@ -1,5 +1,6 @@
 const { Review } = require('../models');
 
+// Lấy tất cả các đánh giá (dùng cho trang quản trị Admin)
 exports.getAllReviews = async (req, res) => {
     try {
         const reviews = await Review.find()
@@ -22,6 +23,7 @@ exports.getAllReviews = async (req, res) => {
     }
 };
 
+// Lấy danh sách các đánh giá cho một sản phẩm cụ thể
 exports.getProductReviews = async (req, res) => {
     try {
         const reviews = await Review.find({ productId: req.params.productId })
@@ -43,6 +45,7 @@ exports.getProductReviews = async (req, res) => {
     }
 };
 
+// Tạo một đánh giá mới cho sản phẩm
 exports.createReview = async (req, res) => {
     try {
         const { productId } = req.params;
@@ -62,6 +65,7 @@ exports.createReview = async (req, res) => {
     }
 };
 
+// Xóa một đánh giá dựa trên mã ID
 exports.deleteReview = async (req, res) => {
     try {
         const review = await Review.findByIdAndDelete(req.params.id);

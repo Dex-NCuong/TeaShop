@@ -56,6 +56,8 @@ exports.updateCategory = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
     try {
         const { Product } = require('../models');
+        // Bước quan trọng: Kiểm tra xem có sản phẩm nào đang thuộc danh mục này không
+        // Điều này ngăn chặn việc xóa danh mục làm cho các sản phẩm bị "mồ côi" (không có danh mục)
         const productCount = await Product.countDocuments({ categoryId: req.params.id });
         if (productCount > 0) {
             return res.status(400).json({
